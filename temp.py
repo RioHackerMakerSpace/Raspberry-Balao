@@ -6,6 +6,8 @@ import sqlite3
 os.system("modprobe w1-gpio")
 os.system("modprobe w1-therm")
 
+intervalo_temperatura = 5 # Tempo entre leituras de temperatura
+
 base_dir = "/sys/bus/w1/devices/"
 device_folder = glob.glob(base_dir + "28*")[0]
 device_file = device_folder + "/w1_slave"
@@ -24,24 +26,16 @@ def read_temp():
 		print(lines)
 	equals_pos = lines[1].find("t=")
 	if (equals_pos != -1):
-		temp_string = lines[1][equals_pos+2:]
-		temp_c = (float(temp_string) / 1000.0)
-		temp_f = (temp_c * 9.0 / 5.0 + 32.0)
-		return (temp_c, temp_f)
+		temp= lines[1][equals_pos+2:]
+		return (temp)
 while True:
+	temp = (read_temp())
 
-	conn = sqlite3.connect('temp.db')
+	conn = sqlite3.connect('db_temp.db')
 	cursor = conn.cursor()
 
-	temp_lida = str((read_temp()[0]))
-
-	cursor.execute("INSERT INTO temperaturas (temperatura)  VALUES (?)", (temp_lida))
+	cursor.execute("INSERT INTO temperaturas (Temperatura)  VALUES (?)", (temp,))
 	conn.commit()
 	conn.close()
 
-	print(read_temp()[0]," Graus Celsius")
-	print(read_temp()[1]," Graus Fahrenheit")
-	print(temp_lida)
-	print(type(temp_lida))
-	print("")
-	time.sleep(5)
+	time.sleep(intervalo_temperatura)
